@@ -1,3 +1,7 @@
+plugins {
+    id "com.jfrog.bintray" version "1.1"
+}
+
 apply plugin: 'idea'
 apply plugin: 'groovy'
 
@@ -11,73 +15,25 @@ dependencies {
     compile gradleApi()
 }
 
-group = 'desirableobjects.gradle.plugins'
-archivesBaseName = 'gradle-sass-plugin'
-version = '0.1.0'
+bintray {
+    user = System.getProperty('BINTRAY_USERNAME')
+    key = System.getProperty('BINTRAY_APIKEY')
 
-apply plugin: 'distribution'
-
-distributions {
-    main {
-        baseName = archivesBaseName
-        contents {
-            from { libsDir }
-        }
-    }
-}
-
-ext {
-    bintrayBaseUrl = 'https://api.bintray.com/maven'
-    bintrayUsername = 'antony'
-    bintrayRepository = 'gradle-plugins'
-    bintrayPackage = 'gradle-sass-plugin'
-}
-
-apply plugin: 'maven-publish'
-
-task sourceJar(type: Jar) {
-   from sourceSets.main.allSource
-   classifier = 'source'
-}
-
-publishing {
-    publications {
-        plugin(MavenPublication) {
-            from components.java
-
-            artifact sourceJar {
-                classifier "sources"
-            }
-
-            pom.withXml {
-                def root = asNode()
-                root.appendNode('name', 'Gradle Sass plugin')
-                root.appendNode('description', 'Gradle plugin for compiling and watching sass and scss.')
-                root.appendNode('inceptionYear', '2015')
-
-                def license = root.appendNode('licenses').appendNode('license')
-                license.appendNode('name', 'The Apache Software License, Version 2.0')
-                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
-                license.appendNode('distribution', 'repo')
-
-                def developer = root.appendNode('developers').appendNode('developer')
-                developer.appendNode('id', 'antony')
-                developer.appendNode('name', 'Antony Jones')
-                developer.appendNode('email', 'aj@desirableobjects.co.uk')
-            }
-
-        }
-    }
-
-    repositories {
-        maven {
-            name 'Bintray'
-            url "$bintrayBaseUrl/$bintrayUsername/$bintrayRepository/$bintrayPackage"
-
-            credentials {
-                username = System.getenv('BINTRAY_USERNAME') ?: 'invalid_user'
-                password = System.getenv('BINTRAY_API_KEY') ?: 'invalid_key'
-            }
+    dryRun = false
+    publish = true
+    pkg {
+        repo = 'gradle-plugins'
+        name = 'gradle-sass-plugin'
+        desc = 'Gradle Sass Plugin'
+        websiteUrl = 'https://github.com/desirable-objects/gradle-sass-plugin'
+        issueTrackerUrl = 'https://github.com/desirable-objects/gradle-sass-plugin/issues'
+        vcsUrl = 'https://github.com/desirable-objects/gradle-sass-plugin.git'
+        licenses = ['Apache-2.0']
+        labels = ['gradle', 'sass', 'css']
+        publicDownloadNumbers = true
+        version {
+            name = '1.0.1'
+            vcsTag = '1.0.1'
         }
     }
 }
