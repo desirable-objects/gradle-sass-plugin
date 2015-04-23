@@ -28,10 +28,10 @@ class SassCompiler {
         }
     }
 
-    static createContext(Path sourceDir, String filename) {
+    static createContext(Path sourceDir, Path includesDir, String filename) {
         SassContext ctx = SassFileContext.create(sourceDir.resolve(filename)) as SassContext
         SassOptions options = ctx.getOptions()
-        options.setIncludePath(sourceDir)
+        options.setIncludePath(includesDir)
         options.setOutputStyle(SassOutputStyle.COMPRESSED)
         return ctx
     }

@@ -14,13 +14,15 @@ class SassWatcher implements Runnable {
     private File outputDir
     private String fileExtension
     private Path sourceDir
+    private Path includesDir
 
-    public SassWatcher(Path sourceDir, File outputDir, String fileExtension, WatchService myWatcher, Map<String, SassContext> contexts) {
+    public SassWatcher(Path sourceDir, Path includesDir, File outputDir, String fileExtension, WatchService myWatcher, Map<String, SassContext> contexts) {
         this.myWatcher = myWatcher
         this.contexts = contexts
         this.outputDir = outputDir
         this.fileExtension = fileExtension
         this.sourceDir = sourceDir
+        this.includesDir = includesDir
     }
 
     @Override
@@ -34,7 +36,7 @@ class SassWatcher implements Runnable {
                         if (contexts[filename]) {
                             SassCompiler.compile(outputDir, filename, contexts[filename])
                         } else {
-                            contexts[filename] = SassCompiler.createContext(sourceDir, filename)
+                            contexts[filename] = SassCompiler.createContext(sourceDir, includesDir, filename)
                         }
                     }
                 }
