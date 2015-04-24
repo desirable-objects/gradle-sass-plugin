@@ -1,12 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'com.cathive.sass', name: 'com.cathive.sass', version: '3.1.0.1'
-    }
-}
-
 plugins {
     id "com.jfrog.bintray" version "1.1"
 }
@@ -20,13 +11,18 @@ repositories {
 }
 
 dependencies {
-    compile 'com.cathive.sass:com.cathive.sass:3.1.0.1'
-    compile 'org.codehaus.groovy:groovy:2.4.3'
+    compile 'com.cathive.sass:com.cathive.sass:3.1.0.1', {
+      transitive = true
+    }
+    compile 'org.codehaus.groovy:groovy-all:2.3.10'
+    compile('org.spockframework:spock-core:1.0-groovy-2.3') {
+        exclude(module: 'groovy-all')
+    }
     compile gradleApi()
 }
 
 group = "desirableobjects.gradle.plugins"
-version = "0.1.0"
+version = "0.1.2"
 archivesBaseName = "gradle-sass-plugin"
 
 bintray {
