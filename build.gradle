@@ -14,15 +14,15 @@ dependencies {
     compile 'com.cathive.sass:com.cathive.sass:3.1.0.1', {
       transitive = true
     }
-    compile 'org.codehaus.groovy:groovy-all:2.3.10'
+    compile gradleApi()
+    compile localGroovy()
     compile('org.spockframework:spock-core:1.0-groovy-2.3') {
         exclude(module: 'groovy-all')
     }
-    compile gradleApi()
 }
 
 group = "desirableobjects.gradle.plugins"
-version = "0.1.2"
+version = "0.2"
 archivesBaseName = "gradle-sass-plugin"
 
 bintray {

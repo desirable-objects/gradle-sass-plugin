@@ -18,15 +18,13 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 class CompileSassTask extends DefaultTask {
 
     @InputDirectory
-    public File inputDir
+    public File inputDir = project.sass.inputDir
 
     @OutputDirectory
-    public File outputDir
+    public File outputDir = project.sass.outputDir
 
-    public File includesDir
-
-    public String fileExtension
-
+    public File includesDir = project.sass.includesDir
+    public String fileExtension = project.sass.fileExtension
     public Boolean watch
 
     @TaskAction
