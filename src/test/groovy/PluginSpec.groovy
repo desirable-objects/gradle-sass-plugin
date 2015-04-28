@@ -1,7 +1,13 @@
+import com.cathive.sass.SassContext
+import com.cathive.sass.SassFileContext
 import desirableobjects.gradle.plugins.sass.CompileSassTask
+import desirableobjects.gradle.plugins.sass.SassCompiler
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
+
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class PluginSpec extends Specification {
 
@@ -30,12 +36,13 @@ class PluginSpec extends Specification {
 
     }
 
-    private Project createProject() {
+    private Project createProject(inputDirectory = './test/resources', includesDirectory = null) {
         final Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'sass'
         project.sass {
-            inputDir = project.file('./test/resources')
+            inputDir = project.file(inputDirectory)
             outputDir = project.file('/tmp')
+            includesDir = project.file(includesDirectory ?: inputDirectory)
         }
         return project
     }
