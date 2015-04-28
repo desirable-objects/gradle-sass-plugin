@@ -7,6 +7,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
+import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.WatchService
@@ -33,21 +34,22 @@ class CompileSassTask extends DefaultTask {
         Path sourceIncludeDir = Paths.get(includesDir.path)
 
         ContextBuilder contextBuilder = new ContextBuilder()
-        contextBuilder.buildIncludesContext(includesDir)
-        contextBuilder.buildInputContext(inputDir, sourceDir, sourceIncludeDir)
+        contextBuilder.buildIncludesContext(sourceIncludeDir)
+        contextBuilder.buildInputContext(sourceDir, sourceIncludeDir)
+
+        SassCompiler sassCompiler = new SassCompiler(sourceDir, sourceIncludeDir, outputDir)
 
         contextBuilder.context.each { String originalFilename, SassContext ctx ->
-            SassCompiler.compile(outputDir, originalFilename, ctx)
+            sassCompiler.compile(originalFilename, ctx)
         }
 
         if (watch) {
-            WatchService myWatcher = sourceDir.getFileSystem().newWatchService()
+            SassWatcher fileWatcher = new SassWatcher(sourceDir, sourceIncludeDir, outputDir, fileExtension, contextBuilder)
+            Thread th = new Thread(fileWatcher, "FileWatcher")
+            th.start()
 
-            SassWatcher fileWatcher = new SassWatcher(sourceDir, sourceIncludeDir, outputDir, fileExtension, myWatcher, contextBuilder.context)
-            Thread th = new Thread(fileWatcher, "FileWatcher");
-            th.start();
-
-            sourceDir.register(myWatcher, ENTRY_CREATE, ENTRY_MODIFY)
+            fileWatcher.register(sourceDir)
+            fileWatcher.register(sourceIncludeDir)
         }
 
     }

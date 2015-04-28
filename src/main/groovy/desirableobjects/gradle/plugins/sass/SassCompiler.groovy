@@ -10,7 +10,17 @@ import java.nio.file.Path
 
 class SassCompiler {
 
-    static compile(File outputDir, String originalFilename, SassContext ctx) {
+    File outputDir
+    Path sourceDir
+    Path includesDir
+
+    SassCompiler(Path sourceDir, Path includesDir, File outputDir) {
+        this.includesDir = includesDir
+        this.outputDir = outputDir
+        this.sourceDir = sourceDir
+    }
+
+    void compile(String originalFilename, SassContext ctx) {
 
         println 'Sass Plugin: Compiling ' + originalFilename
 
@@ -30,7 +40,7 @@ class SassCompiler {
         }
     }
 
-    static createContext(Path sourceDir, Path includesDir, String filename) {
+    SassContext createContext(String filename) {
         SassContext ctx = SassFileContext.create(sourceDir.resolve(filename)) as SassContext
         SassOptions options = ctx.getOptions()
         options.setIncludePath(includesDir)
