@@ -5,6 +5,7 @@ import com.cathive.sass.SassContext
 import com.cathive.sass.SassFileContext
 import com.cathive.sass.SassOptions
 import com.cathive.sass.SassOutputStyle
+import sun.font.FontScalerException
 
 import java.nio.file.Path
 

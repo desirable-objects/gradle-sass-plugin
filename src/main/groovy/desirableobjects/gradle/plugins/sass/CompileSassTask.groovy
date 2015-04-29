@@ -33,23 +33,20 @@ class CompileSassTask extends DefaultTask {
         Path sourceDir = Paths.get(inputDir.path)
         Path sourceIncludeDir = Paths.get(includesDir.path)
 
-        ContextBuilder contextBuilder = new ContextBuilder()
-        contextBuilder.buildIncludesContext(sourceIncludeDir)
-        contextBuilder.buildInputContext(sourceDir, sourceIncludeDir)
-
-        SassCompiler sassCompiler = new SassCompiler(sourceDir, sourceIncludeDir, outputDir)
-
-        contextBuilder.context.each { String originalFilename, SassContext ctx ->
-            sassCompiler.compile(originalFilename, ctx)
-        }
+        ContextBuilder contextBuilder = new ContextBuilder(sourceDir, sourceIncludeDir, outputDir.toPath())
+        contextBuilder.buildHierarchy()
 
         if (watch) {
-            SassWatcher fileWatcher = new SassWatcher(sourceDir, sourceIncludeDir, outputDir, fileExtension, contextBuilder)
-            Thread th = new Thread(fileWatcher, "FileWatcher")
-            th.start()
+            SassSourceWatcher sourceWatcher = new SassSourceWatcher(sourceDir, sourceIncludeDir, outputDir, fileExtension, contextBuilder)
+            SassIncludeWatcher includeWatcher = new SassIncludeWatcher(sourceIncludeDir, sourceIncludeDir, outputDir, fileExtension, contextBuilder)
+            Thread th = new Thread(sourceWatcher, "SourceWatcher")
+            Thread th2 = new Thread(includeWatcher, "IncludeWatcher")
 
-            fileWatcher.register(sourceDir)
-            fileWatcher.register(sourceIncludeDir)
+            sourceWatcher.register(sourceDir)
+            includeWatcher.register(sourceIncludeDir)
+
+            th2.start()
+            th.start()
         }
 
     }

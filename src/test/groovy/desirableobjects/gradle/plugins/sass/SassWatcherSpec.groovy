@@ -1,9 +1,6 @@
 package desirableobjects.gradle.plugins.sass
 
 import com.cathive.sass.SassContext
-import desirableobjects.gradle.plugins.sass.ContextBuilder
-import desirableobjects.gradle.plugins.sass.SassCompiler
-import desirableobjects.gradle.plugins.sass.SassWatcher
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -12,9 +9,11 @@ import java.nio.file.Path
 
 class SassWatcherSpec extends Specification {
 
-    static Thread th
+    Thread th
+    Thread th2
 
-    @Shared SassWatcher fileWatcher
+    @Shared SassSourceWatcher sourceWatcher
+    @Shared SassIncludeWatcher includeWatcher
     @Shared ContextBuilder contextBuilder
     @Shared Path project
     @Shared Path source
@@ -34,12 +33,17 @@ class SassWatcherSpec extends Specification {
         contextBuilder = new ContextBuilder(source, includes, output)
         contextBuilder.compiler = Mock(SassCompiler)
 
-        fileWatcher = new SassWatcher(source, includes, output.toFile(), 'scss', contextBuilder)
-        fileWatcher.register(source)
+        sourceWatcher = new SassSourceWatcher(source, includes, output.toFile(), 'scss', contextBuilder)
+        sourceWatcher.register(source)
+
+        includeWatcher = new SassIncludeWatcher(includes, includes, output.toFile(), 'scss', contextBuilder)
+        includeWatcher.register(includes)
 
     }
 
     def cleanup() {
+        if (th) th.interrupt()
+        if (th2) th2.interrupt()
         project.deleteDir()
     }
 
@@ -47,7 +51,7 @@ class SassWatcherSpec extends Specification {
 
         given:
             String filename = 'demo.scss'
-            th = new Thread(fileWatcher, "FileWatcher")
+            th = new Thread(sourceWatcher, "SourceWatcher")
             th.start()
 
         when:
@@ -72,7 +76,7 @@ class SassWatcherSpec extends Specification {
             new File(source.toFile(), filename).exists()
 
         when:
-            th = new Thread(fileWatcher, "FileWatcher")
+            th = new Thread(sourceWatcher, "SourceWatcher")
             th.start()
 
         and:
@@ -86,24 +90,58 @@ class SassWatcherSpec extends Specification {
 
     }
 
-    def 'compile dependencies for existing files'() {
+    def 'when a new file is added, calculate its dependencies'() {
 
         given:
             String filename = 'hasimports.scss'
             File include = new File(includes.toFile(), 'youwantthis.scss')
-            th = new Thread(fileWatcher, "FileWatcher")
-            th.start()
+            Path relative = source.relativize(include.toPath())
+            String includeName = relative.toFile().path.split('\\.').first()
+
+        expect:
+            !contextBuilder.dependencies.containsKey(filename)
 
         when:
-            new File(source.toFile(), filename) << "@import '${include.path}';\nh1 {\n color: #ffffff;\n }"
+            th = new Thread(sourceWatcher, "SourceWatcher")
+            th.start()
 
         and:
-            include << 'span {\ncolor: #fef1f0;\n}'
+            new File(source.toFile(), filename) << "@import '${includeName}';\nh1 {\n color: #ffffff;\n }"
             Thread.sleep(1000)
 
         then:
             1 * contextBuilder.compiler.createContext(filename) >> { return sassContext }
-            2 * contextBuilder.compiler.compile(filename, _ as SassContext)
+            1 * contextBuilder.compiler.compile(filename, sassContext)
+            0 * _
+
+        and:
+            contextBuilder.watches.containsKey(filename)
+            contextBuilder.dependencies[relative.fileName.toString()] == [filename]
+
+    }
+
+    def 'when a dependency changes - compile things which depend on it'() {
+
+        given:
+            String filename = 'base.scss'
+            File include = new File(includes.toFile(), 'include1.scss')
+            Path relative = source.relativize(include.toPath())
+            String includeName = relative.toFile().path.split('\\.').first()
+            new File(source.toFile(), filename) << "@import '${includeName}';\nh1 {\n color: #ffffff;\n }"
+
+        and:
+            th = new Thread(sourceWatcher, "SourceWatcher")
+            th2 = new Thread(includeWatcher, "IncludeWatcher")
+            th.start()
+            th2.start()
+
+        when:
+            include << 'h2 { color: #c0c0c0 }'
+            Thread.sleep(3000)
+
+        then:
+            1 * contextBuilder.compiler.createContext(_) >> { return sassContext }
+            1 * contextBuilder.compiler.compile(filename, sassContext)
             0 * _
 
     }

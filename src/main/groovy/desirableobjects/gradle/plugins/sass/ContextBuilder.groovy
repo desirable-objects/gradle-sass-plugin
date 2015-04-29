@@ -35,18 +35,25 @@ class ContextBuilder {
 
     private Closure scan = { File inputFile ->
 
-        watches.put(inputFile.name, compiler.createContext(inputFile.name))
+        Path filePath = inputs.relativize(inputFile.toPath())
+        String relativePath = filePath.toString()
+
+        if (!relativePath.contains(includes.toString())) {
+            def context = compiler.createContext(inputFile.name)
+            watches.put(inputFile.name, context)
+        }
 
         def matcher
         inputFile.eachLine { line ->
             if ((matcher = line =~ /^\@import\ ["'](.*)["']/)) {
                 String filename = matcher[0][1].split('/').last() + '.scss'
+
+                if (!dependencies.containsKey(filename)) {
+                    dependencies[filename] = []
+                }
+
                 if (!dependencies[filename].contains(inputFile.name)) {
                     dependencies[filename] << inputFile.name
-                }
-            } else {
-                if (line.trim() != '') {
-                    println "escaping at " + line
                 }
             }
         }
@@ -55,6 +62,8 @@ class ContextBuilder {
     void compileDependenciesFor(String filename) {
 
         List<String> requiresCompilation = dependencies.containsKey(filename) ? dependencies[filename] : [filename]
+
+        println "Compiling dependencies for ${filename}: ${requiresCompilation.join(', ')}"
 
         requiresCompilation.each { String watch ->
             SassContext sassContext = watches[watch]

@@ -1,8 +1,7 @@
 package desirableobjects.gradle.plugins.sass
 
-import com.cathive.sass.SassContext
+import sun.reflect.generics.reflectiveObjects.NotImplementedException
 
-import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.WatchEvent
 import java.nio.file.WatchKey
@@ -13,15 +12,15 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 
 class SassWatcher implements Runnable {
 
-    private WatchService myWatcher
-    private ContextBuilder contexts
-    private File outputDir
-    private String fileExtension
-    private Path sourceDir
-    private Path includesDir
+    protected WatchService myWatcher
+    protected ContextBuilder contexts
+    protected File outputDir
+    protected String fileExtension
+    protected Path sourceDir
+    protected Path includesDir
 
     public SassWatcher(Path sourceDir, Path includesDir, File outputDir, String fileExtension, ContextBuilder contextBuilder) {
-        this.myWatcher = FileSystems.getDefault().newWatchService()
+        this.myWatcher = sourceDir.getFileSystem().newWatchService()
         this.contexts = contextBuilder
         this.outputDir = outputDir
         this.fileExtension = fileExtension
@@ -39,23 +38,7 @@ class SassWatcher implements Runnable {
             WatchKey key = myWatcher.take();
             while(key != null) {
                 for (WatchEvent event : key.pollEvents()) {
-
-                    String context = event.context() as String
-                    if(context.endsWith('.'+fileExtension)) {
-
-                        Path filePath = sourceDir.relativize(sourceDir.resolve(context))
-                        String filename = filePath.toString()
-
-                        if (ENTRY_CREATE.name() == event.kind().name()) {
-                            contexts.push(sourceDir.resolve(context).toFile())
-                        }
-
-                        if (ENTRY_MODIFY.name() == event.kind().name()) {
-                            contexts.compileDependenciesFor(filename)
-                        }
-
-                    }
-
+                    takeAction(event)
                 }
                 key.reset();
                 key = myWatcher.take();
@@ -64,5 +47,9 @@ class SassWatcher implements Runnable {
             e.printStackTrace();
         }
         println 'Sass Plugin: Stopping watch'
+    }
+
+    protected void takeAction(WatchEvent event) {
+        throw new NotImplementedException()
     }
 }
