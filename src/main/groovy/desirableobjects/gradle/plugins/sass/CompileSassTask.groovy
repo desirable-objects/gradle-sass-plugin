@@ -35,6 +35,7 @@ class CompileSassTask extends DefaultTask {
 
         ContextBuilder contextBuilder = new ContextBuilder(sourceDir, sourceIncludeDir, outputDir.toPath())
         contextBuilder.buildHierarchy()
+        contextBuilder.preCompile()
 
         if (watch) {
             SassSourceWatcher sourceWatcher = new SassSourceWatcher(sourceDir, sourceIncludeDir, outputDir, fileExtension, contextBuilder)

@@ -31,10 +31,10 @@ class SassCompiler {
         try {
             ctx.compile(fos)
         } catch (SassCompilationException e) {
-            System.err.println(e.getMessage())
+            System.err.println("Sass Plugin: ${e.getMessage()}")
             throw e
         } catch (IOException e) {
-            System.err.println(String.format("Compilation failed: %s", e.getMessage()))
+            System.err.println("Sass Plugin: Compilation failed: ${e.getMessage()}")
             throw e
         } finally {
             fos.close()

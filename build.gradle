@@ -23,7 +23,7 @@ dependencies {
 }
 
 group = "desirableobjects.gradle.plugins"
-version = "0.3"
+version = "0.3.1-rc"
 archivesBaseName = "gradle-sass-plugin"
 
 bintray {

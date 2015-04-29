@@ -33,6 +33,15 @@ class ContextBuilder {
 
     }
 
+    void preCompile() {
+
+        println "Sass Plugin: Precompiling sass"
+
+        watches.each { String filename, SassContext context ->
+            compiler.compile(filename, context)
+        }
+    }
+
     private Closure scan = { File inputFile ->
 
         Path filePath = inputs.relativize(inputFile.toPath())
@@ -63,7 +72,7 @@ class ContextBuilder {
 
         List<String> requiresCompilation = dependencies.containsKey(filename) ? dependencies[filename] : [filename]
 
-        println "Compiling dependencies for ${filename}: ${requiresCompilation.join(', ')}"
+        println "Sass Plugin: Compiling dependencies for ${filename}: ${requiresCompilation.join(', ')}"
 
         requiresCompilation.each { String watch ->
             SassContext sassContext = watches[watch]

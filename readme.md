@@ -25,11 +25,17 @@ Using the plugin
 ```groovy
 apply plugin: 'sass'
 
-task compileAndWatchSass(type: desirableobjects.gradle.plugins.sass.CompileSassTask) {
+sass {
     fileExtension = 'scss'
     inputDir = file('src/main/scss')
     includesDir = file('src/main/scss/include')
     outputDir = file('src/ratpack/public/css')
+}
+
+task onlyCompileSass(type: desirableobjects.gradle.plugins.sass.CompileSassTask) {
+}
+
+task compileAndWatchSass(type: desirableobjects.gradle.plugins.sass.CompileSassTask) {
     watch = true
 }
 ```
@@ -39,11 +45,11 @@ Roadmap
 * Issues as below
 * Fixing the manual cathive dependency
 * Better scss error logging
-* Split the watch and compile tasks
 
 Current known issues
 ====================
 
+* Can't run the compileSass task itself (doesn't see the extension?)
 * Exceptions/bad scss kill the watcher
 * Delete is not supported
 * The insides need a lot of rejigging
